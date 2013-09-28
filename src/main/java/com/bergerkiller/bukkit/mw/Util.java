@@ -103,6 +103,48 @@ public class Util {
 	}
 
 	/**
+	 * Checks a Location and the neighboring blocks around it to find a valid portal
+	 *
+	 * @param location location of block to check
+	 * @return Material of portal if found, null if not found
+	 */
+	public static Material findPortalAtPosition(Location location) {
+		Material mat = null;
+		Block b = location.getBlock();
+
+		// BlockFaces to check, relative to the initial location
+		BlockFace[] blockFaces = {
+			BlockFace.SELF, // Start with initial block itself
+			BlockFace.NORTH,
+			BlockFace.SOUTH,
+			BlockFace.EAST,
+			BlockFace.WEST,
+			BlockFace.NORTH_EAST,
+			BlockFace.SOUTH_EAST,
+			BlockFace.SOUTH_WEST,
+			BlockFace.NORTH_WEST
+		};
+
+		// Check each neighboring block to see if it is a recognized portal
+		for (BlockFace blockFace : blockFaces) {
+			Block neighbor = b.getRelative(blockFace);
+
+			if (isNetherPortal(neighbor)) {
+				mat = Material.PORTAL;
+				break;
+			} else if (isEndPortal(neighbor)) {
+				mat = Material.ENDER_PORTAL;
+				break;
+			} else if (isWaterPortal(neighbor)) {
+				mat = Material.STATIONARY_WATER;
+				break;
+			}
+		}
+
+		return mat;
+	}
+
+	/**
 	 * Adds the spawn offset to a given Location
 	 * 
 	 * @param location to add to, can be null

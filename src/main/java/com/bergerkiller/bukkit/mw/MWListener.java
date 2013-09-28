@@ -195,17 +195,11 @@ public class MWListener implements Listener {
 		if (enterLoc == null) {
 			enterLoc = event.getFrom();
 		}
-		Block b = enterLoc.getBlock();
 
 		// Handle player teleportation - portal check
-		Material mat;
-		if (Util.isNetherPortal(b)) {
-			mat = Material.PORTAL;
-		} else if (Util.isEndPortal(b)) {
-			mat = Material.ENDER_PORTAL;
-		} else if (Util.isWaterPortal(b)) {
-			mat = Material.STATIONARY_WATER;
-		} else {
+		Material mat = Util.findPortalAtPosition(enterLoc);
+		if (mat == null) {
+			// Unable to find a portal
 			return;
 		}
 

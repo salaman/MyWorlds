@@ -378,7 +378,7 @@ public class MWListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockPhysics(BlockPhysicsEvent event) {
 		// Allows portals to be placed without physics killing it
-		if (event.getBlock().getType() == Material.PORTAL) {
+		if (MyWorlds.blockPortalPhysics && event.getBlock().getType() == Material.PORTAL) {
 			if (!(event.getBlock().getRelative(BlockFace.DOWN).getType() == Material.AIR)) {
 				event.setCancelled(true);
 			}

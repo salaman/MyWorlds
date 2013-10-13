@@ -44,6 +44,7 @@ public class MyWorlds extends PluginBase {
 	public static boolean allowPersonalPortals;
 	public static boolean enablePortals;
 	public static boolean ignoreEggSpawns;
+	public static boolean blockPortalPhysics;
 	// Whether weather changes handling is ignored
 	public boolean ignoreWeatherChanges = false;
 	// World to disable keepspawnloaded for
@@ -167,6 +168,9 @@ public class MyWorlds extends PluginBase {
 		config.addHeader("importFromMultiverse", "Note that default world properties are then no longer applied, as MultiVerse takes that over");
 		config.addHeader("importFromMultiverse", "This setting is only active if MultiVerse-Core is installed.");
 		importFromMultiVerse = config.get("importFromMultiVerse", true);
+
+		config.setHeader("blockPortalPhysics", "\nAllows portals to be placed without physics killing it");
+		blockPortalPhysics = config.get("blockPortalPhysics", true);
 
 		config.save();
 

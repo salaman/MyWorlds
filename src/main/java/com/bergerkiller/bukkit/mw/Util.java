@@ -72,7 +72,7 @@ public class Util {
 	 * @return True if it is an end Portal, False if not
 	 */
 	public static boolean isEndPortal(Block main) {
-		return main.getType() == Material.ENDER_PORTAL;
+		return main.getType() == Material.ENDER_PORTAL || main.getRelative(BlockFace.DOWN).getType() == Material.ENDER_PORTAL;
 	}
 
 	/**

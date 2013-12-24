@@ -54,9 +54,14 @@ public class TeleportPortal extends Command {
 						//Perform portal teleports
 						int succcount = 0;
 						for (Player target : targets) {
-							if (portal.teleportSelf(target)) {
-								//Success
-								succcount++;
+							if (Permission.canTeleport(target, portal)) {
+								if (portal.teleportSelf(target)) {
+									//Success
+									succcount++;
+								}
+							} else if (targets[0] == sender) {
+								// Sender is the target, notify permissions error
+								Localization.PORTAL_NOTELEPORT.message(sender);
 							}
 						}
 						if (targets.length > 1 || targets[0] != sender) {
@@ -75,9 +80,14 @@ public class TeleportPortal extends Command {
 							//Perform world teleports
 							int succcount = 0;
 							for (Player target : targets) {
-								if (WorldManager.teleportToWorld(target, w)) {
-									//Success
-									succcount++;
+								if (Permission.canTeleport(target, w)) {
+									if (WorldManager.teleportToWorld(target, w)) {
+										//Success
+										succcount++;
+									}
+								} else if (targets[0] == sender) {
+									// Sender is the target, notify permissions error
+									Localization.WORLD_NOTELEPORT.message(sender);
 								}
 							}
 							// Show message, but don't if only the sender was teleported

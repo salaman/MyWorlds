@@ -90,6 +90,19 @@ public class Permission extends PermissionEnum {
 		return Permission.GENERAL_ENTER.has(player, worldname);
 	}
 
+	public static boolean canTeleport(Player player, Portal portal) {
+		return canTeleportToPortal(player, portal.getName());
+	}
+	public static boolean canTeleport(Player player, World world) {
+		return canTeleportToWorld(player, world.getName());
+	}
+	public static boolean canTeleportToPortal(Player player, String portalname) {
+		return Permission.PORTAL_TELEPORT.has(player, portalname);
+	}
+	public static boolean canTeleportToWorld(Player player, String worldname) {
+		return Permission.GENERAL_TELEPORT.has(player, worldname);
+	}
+
 	public static boolean canBuild(Player player) {
 		if (player == null) return true;
 		return canBuild(player, player.getWorld().getName());

@@ -16,6 +16,7 @@ public class Localization extends LocalizationEnum {
 	public static final Localization WORLD_NOUSE = new Localization("world.nouse", ChatColor.RED + "You are not allowed to use this in this world!");
 	public static final Localization WORLD_NOBUILD = new Localization("world.nobuild", ChatColor.RED + "You are not allowed to place blocks in this world!");
 	public static final Localization WORLD_NOBREAK = new Localization("world.nobreak", ChatColor.RED + "cYou are not allowed to break blocks in this world!");
+	public static final Localization WORLD_NOTELEPORT = new Localization("world.noteleport", ChatColor.RED + "You are not allowed to teleport to this portal!");
 	public static final Localization PORTAL_ENTER = new Localization("portal.enter", ChatColor.GREEN + "You teleported to '%0%'!");
 	public static final Localization PORTAL_NOTFOUND = new Localization("portal.notfound", ChatColor.RED + "Portal '%0%' was not found!");
 	public static final Localization PORTAL_NODESTINATION = new Localization("portal.nodestination", ChatColor.YELLOW + "This portal has no destination!");
@@ -24,6 +25,7 @@ public class Localization extends LocalizationEnum {
 	public static final Localization PORTAL_CREATE_MISSING = new Localization("portal.create.missing", ChatColor.YELLOW + "The destination portal still has to be placed");
 	public static final Localization PORTAL_CREATE_END = new Localization("portal.create.end", ChatColor.GREEN + "You created a new destination portal!");
 	public static final Localization PORTAL_PREPARING = new Localization("portal.preparing", ChatColor.YELLOW + "The other portal is being prepared (this can take a while...)");
+	public static final Localization PORTAL_NOTELEPORT = new Localization("world.noteleport", ChatColor.RED + "You are not allowed to teleport to this world!");
 
 	private Localization(String name, String defValue) {
 		super(name, defValue);

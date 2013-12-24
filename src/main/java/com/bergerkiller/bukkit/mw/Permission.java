@@ -18,6 +18,7 @@ public class Permission extends PermissionEnum {
 	public static final Permission COMMAND_UNLOAD = new Permission("world.unload", PermissionDefault.OP, "Sets if the player can unload loaded worlds (not create)");
 	public static final Permission COMMAND_CREATE = new Permission("world.create", PermissionDefault.OP, "Sets if the player can create worlds (not replace)");
 	public static final Permission COMMAND_SPAWN = new Permission("world.spawn", PermissionDefault.OP, "Sets if the player can teleport to world spawn points");
+	public static final Permission COMMAND_RESPAWN = new Permission("world.respawn", PermissionDefault.OP, "Sets if the player can teleport to world respawn point");
 	public static final Permission COMMAND_EVACUATE = new Permission("world.evacuate", PermissionDefault.OP, "Sets if the player can clear a world from its players");
 	public static final Permission COMMAND_REPAIR = new Permission("world.repair", PermissionDefault.OP, "Sets if the player can repair damaged worlds (only if broken)");
 	public static final Permission COMMAND_SAVE = new Permission("world.save", PermissionDefault.OP, "Sets if the player can save worlds");

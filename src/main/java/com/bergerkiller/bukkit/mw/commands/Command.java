@@ -235,6 +235,8 @@ public class Command {
 					rval = new WorldCreate();
 				} else if (cmdLabel.equalsIgnoreCase("spawn")) {
 					rval = new WorldSpawn();
+				} else if (cmdLabel.equalsIgnoreCase("respawn")) {
+					rval = new WorldRespawn();
 				} else if (cmdLabel.equalsIgnoreCase("evacuate")) {
 					rval = new WorldEvacuate();
 				} else if (cmdLabel.equalsIgnoreCase("evac")) {

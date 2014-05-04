@@ -1,18 +1,25 @@
 package com.bergerkiller.bukkit.mw;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipException;
 
+import com.evilmidget38.UUIDFetcher;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -789,6 +796,202 @@ public class WorldManager {
 		} catch (Exception ex) {
 			return -3;
 		}
+	}
+
+	/**
+	 * Converts a given world's player folder to the new 1.8 UUID format
+	 * @param world
+	 * @return
+	 */
+	public static boolean convertWorldPlayerData(World world) {
+		// Don't convert the main world -- this should be handled by the server itself
+		if (WorldUtil.getWorlds().iterator().next() == world) {
+			return false;
+		}
+
+		MyWorlds.plugin.log(Level.INFO, "Beginning UUID conversion for world '" + world.getName() + "'");
+
+		File input = new File(WorldConfig.get(world).getWorldFolder(), "players");
+		File output = new File(input.getParentFile(), "playerdata");
+		File error = new File(input.getParentFile(), "unknownplayers");
+
+		// Create playerdata directory
+		if (!output.exists() && !output.mkdirs()) {
+			MyWorlds.plugin.log(Level.WARNING, "Error creating: " + output.getAbsolutePath());
+			return false;
+		}
+
+		// We have nothing to do if there's no old player folder, consider it migrated
+		if (input.exists() && input.isDirectory()) {
+			File[] files = input.listFiles();
+
+			if (files == null) {
+				return false;
+			}
+
+			ArrayList<String> names = new ArrayList<String>();
+
+			// Iterate through all files in players dir
+			for (File file : files) {
+				String name = null;
+				String filename = file.getName();
+
+				if (filename.toLowerCase(Locale.ROOT).endsWith(".dat")) {
+					name = filename.substring(0, filename.length() - ".dat".length());
+				}
+
+				// Make sure we have a player name
+				if (name != null && name.length() > 0) {
+					names.add(name);
+				}
+			}
+
+			Map<String, UUID> uuids = getPlayerIds(names);
+			int migratedCount = 0;
+
+			//for (Map.Entry<String, UUID> entry : uuids.entrySet()) {
+			for (String name : names) {
+				UUID uuid = uuids.get(name);
+				File inputDat = new File(input, name + ".dat");
+				File outputDat = null;
+
+				// We didn't get a UUID back, move to unknownplayers folder
+				if (uuid == null) {
+					MyWorlds.plugin.log(Level.WARNING, "Unable to find UUID for player '" + name + "', moving to unknownplayers");
+					outputDat = new File(error, name + ".dat");
+				}
+				// Move data file to playerdata folder
+				else {
+					outputDat = new File(output, uuid.toString() + ".dat");
+				}
+
+				boolean success = migratePlayerFile(name, inputDat, outputDat);
+
+				// Increment migrated count for display purposes
+				if (success && uuid != null) {
+					migratedCount++;
+				}
+			}
+
+			// Show summary
+			if (names.size() > 0) {
+				MyWorlds.plugin.log(Level.INFO, "Migrated " + migratedCount + "/" + names.size() + " data files!");
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Gets a map of all valid UUIDs for a given list of player names.
+	 * It is possible for a name not to be in the returned map; this means that
+	 * the server is in online mode and the name is not valid in the Mojang API.
+	 * @param names
+	 * @return
+	 */
+	public static Map<String, UUID> getPlayerIds(List<String> names) {
+		final int DELAY_BETWEEN_FAILURES = 1000 * 5;
+		final int MAX_FAIL_COUNT = 3;
+
+		Map<String, UUID> uuids = null;
+
+		boolean onlineMode = Bukkit.getServer().getOnlineMode();
+
+		// Use a live Mojang API lookup if the server is running in online mode
+		if (onlineMode) {
+			UUIDFetcher fetcher = new UUIDFetcher(names);
+			int failCount = 0;
+
+			while (true) {
+				try {
+					uuids = fetcher.call();
+					break;
+				} catch (Exception e) {
+					failCount++;
+
+					MyWorlds.plugin.log(Level.SEVERE, "Exception while fetching UUIDs from Mojang's API:");
+					e.printStackTrace();
+
+					// We've reached our max fail count, abort load
+					if (failCount == MAX_FAIL_COUNT) {
+						MyWorlds.plugin.log(Level.SEVERE, "*** Unable to convert UUIDs due to Mojang API being unaccessible.");
+						MyWorlds.plugin.log(Level.SEVERE, "*** Bailing out for safety reasons (eg. player data loss)!");
+						MyWorlds.plugin.log(Level.SEVERE, "*** Please start the server again when the API is back up,");
+						MyWorlds.plugin.log(Level.SEVERE, "*** or manually remove player data pending conversion.");
+						throw new RuntimeException("Unable to convert UUIDs due to Mojang API being unaccessible");
+					}
+
+					// Try fetching again in a few seconds
+					try {
+						MyWorlds.plugin.log(Level.SEVERE, "Retrying in " + DELAY_BETWEEN_FAILURES + " ms...");
+						Thread.sleep(DELAY_BETWEEN_FAILURES);
+					}
+					catch (InterruptedException ignored) {
+						// Do nothing
+					}
+				}
+			}
+		}
+		// Generate UUIDs based on the name for offline mode
+		else {
+			uuids = new HashMap<String, UUID>();
+
+			for (String name : names) {
+				UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8));
+				uuids.put(name, uuid);
+			}
+		}
+
+		return uuids;
+	}
+
+	private static boolean migratePlayerFile(String lastKnownName, File inputDat, File outputDat) {
+		// Create output directory
+		if (!outputDat.getParentFile().exists() && !outputDat.getParentFile().mkdirs()) {
+			MyWorlds.plugin.log(Level.WARNING, "Error creating: " + outputDat.getParentFile().getAbsolutePath());
+			return false;
+		}
+
+		if (outputDat.exists()) {
+			MyWorlds.plugin.log(Level.WARNING, "Player data for '" + lastKnownName + "' already exists, not overwriting");
+			return false;
+		}
+
+		// Comply with Bukkit's lastKnownName field
+		CommonTagCompound root = null;
+
+		try {
+			root = CommonTagCompound.readFrom(inputDat);
+		} catch (IOException exception) {
+			MyWorlds.plugin.log(Level.WARNING, "Error reading: " + inputDat.getAbsolutePath());
+		}
+
+		if (root == null) {
+			return false;
+		}
+
+		if (!root.containsKey("bukkit")) {
+			root.put("bukkit", new CommonTagCompound());
+		}
+
+		CommonTagCompound data = (CommonTagCompound) root.get("bukkit");
+		data.putValue("lastKnownName", lastKnownName);
+
+		// Write fixed dat file
+		try {
+			root.writeTo(inputDat);
+		} catch (IOException exception) {
+			MyWorlds.plugin.log(Level.WARNING, "Error writing updated file: " + inputDat.getAbsolutePath());
+			return false;
+		}
+
+		// Move data file to new location in playerdata
+		if (!inputDat.renameTo(outputDat)) {
+			MyWorlds.plugin.log(Level.WARNING, "Could not convert file for '" + lastKnownName + "'");
+			return false;
+		}
+
+		return true;
 	}
 
 	@Deprecated

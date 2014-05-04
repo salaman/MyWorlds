@@ -2,6 +2,7 @@ package com.bergerkiller.bukkit.mw;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.zip.ZipException;
 
 import org.bukkit.Bukkit;
@@ -35,11 +36,11 @@ public class MWPlayerDataController extends PlayerDataController {
 	/**
 	 * Gets the Main world save file for the playerName specified
 	 * 
-	 * @param playerName
+	 * @param playerId
 	 * @return Save file
 	 */
-	public static File getMainFile(String playerName) {
-		File playerData =  WorldConfig.getMain().getPlayerData(playerName);
+	public static File getMainFile(UUID playerId) {
+		File playerData =  WorldConfig.getMain().getPlayerData(playerId);
 		playerData.getParentFile().mkdirs();
 		return playerData;
 	}
@@ -66,7 +67,7 @@ public class MWPlayerDataController extends PlayerDataController {
 	 * @return save file
 	 */
 	public static File getSaveFile(HumanEntity player) {
-		File playerData = getSaveWorld(player).getPlayerData(player.getName());
+		File playerData = getSaveWorld(player).getPlayerData(player.getUniqueId());
 		playerData.getParentFile().mkdirs();
 		return playerData;
 	}
@@ -117,7 +118,7 @@ public class MWPlayerDataController extends PlayerDataController {
 	 * @return Last known Location, or null if not found/stored
 	 */
 	public static Location readLastLocation(Player player, World world) {
-		File posFile = WorldConfig.get(world).getPlayerData(player.getName());
+		File posFile = WorldConfig.get(world).getPlayerData(player.getUniqueId());
 		if (!posFile.exists()) {
 			return null;
 		}
@@ -221,7 +222,7 @@ public class MWPlayerDataController extends PlayerDataController {
 			} else {
 				commonPlayer.setHealth(data.getValue("HealF", (float) commonPlayer.getMaxHealth()));
 			}
-			
+
 			// Respawn position
 			String spawnWorld = data.getValue("SpawnWorld", "");
 			IntVector3 spawn = null;
@@ -242,7 +243,7 @@ public class MWPlayerDataController extends PlayerDataController {
 			// Other data
 			NBTUtil.loadFoodMetaData(EntityHumanRef.foodData.get(playerHandle), data);
 			NBTUtil.loadInventory(player.getEnderChest(), data.createList("EnderItems"));
-			
+
 			// Load Mob Effects
 			HashMap<Integer, Object> effects = EntityHumanRef.mobEffects.get(playerHandle);
 			if (data.containsKey("ActiveEffects")) {
@@ -274,7 +275,7 @@ public class MWPlayerDataController extends PlayerDataController {
 			CommonTagCompound tagcompound;
 			boolean hasPlayedBefore = false;
 			// Get the source file to use for loading
-			main = getMainFile(human.getName());
+			main = getMainFile(human.getUniqueId());
 			hasPlayedBefore = main.exists();
 
 			// Find out where to find the save file
@@ -287,7 +288,7 @@ public class MWPlayerDataController extends PlayerDataController {
 					if (world != null) {
 						// Switch to the save file of the loaded world
 						String saveWorld = WorldConfig.get(world).inventory.getSharedWorldName();
-						main = WorldConfig.get(saveWorld).getPlayerData(human.getName());
+						main = WorldConfig.get(saveWorld).getPlayerData(human.getUniqueId());
 					}
 				} catch (Throwable t) {
 					// Stick with the current world for now.
@@ -363,7 +364,7 @@ public class MWPlayerDataController extends PlayerDataController {
 			}
 
 			// Now, go ahead and save this data
-			File mainDest = getMainFile(player.getName());
+			File mainDest = getMainFile(player.getUniqueId());
 			File dest = getSaveFile(player);
 			tagcompound.writeTo(dest);
 
@@ -392,8 +393,8 @@ public class MWPlayerDataController extends PlayerDataController {
 			// Main file: the Main World folder where only the current World is stored
 			// Pos file: the folder of the World the player is on where the position is stored			
 			// Dest file: the inventory-merged folder where player info is stored
-			File mainFile = getMainFile(human.getName());
-			File posFile = WorldConfig.get(human).getPlayerData(human.getName());
+			File mainFile = getMainFile(human.getUniqueId());
+			File posFile = WorldConfig.get(human).getPlayerData(human.getUniqueId());
 			File destFile = getSaveFile(human);
 
 			Location loc = human.getLocation();

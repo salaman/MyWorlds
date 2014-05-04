@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -448,6 +449,7 @@ public class WorldConfig extends WorldConfigStore {
 			if (w == null) {
 				MyWorlds.plugin.log(Level.SEVERE, "Failed to (pre)load world: " + worldname);
 			} else {
+				WorldManager.convertWorldPlayerData(w);
 				return w;
 			}
 		} else {
@@ -683,7 +685,7 @@ public class WorldConfig extends WorldConfigStore {
 	public File getPlayerFolder() {
 		World world = getWorld();
 		if (world == null) {
-			return new File(getWorldFolder(), "players");
+			return new File(getWorldFolder(), "playerdata");
 		} else {
 			return WorldUtil.getPlayersFolder(world);
 		}
@@ -692,12 +694,11 @@ public class WorldConfig extends WorldConfigStore {
 	/**
 	 * Gets the File where player data for this world could be saved
 	 * 
-	 * @param playerName (case-sensitive)
-	 * @param mkDir - True to create the player folder
+	 * @param playerId Player UUID
 	 * @return Player Data File
 	 */
-	public File getPlayerData(String playerName) {
-		return new File(getPlayerFolder(), playerName + ".dat");
+	public File getPlayerData(UUID playerId) {
+		return new File(getPlayerFolder(), playerId + ".dat");
 	}
 
 	/**

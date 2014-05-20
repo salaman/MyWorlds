@@ -1,4 +1,9 @@
-package com.evilmidget38;
+/**
+ * UUIDFetcher v3 by evilmidget38
+ * https://gist.github.com/evilmidget38/26d70114b834f71fb3b4
+ */
+
+package com.bergerkiller.bukkit.mw;
 
 import com.google.common.collect.ImmutableList;
 import org.json.simple.JSONArray;
